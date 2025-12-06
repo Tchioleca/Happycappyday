@@ -1,0 +1,70 @@
+<!doctype html>
+<html lang="en">
+<head>
+  <meta name="viewport" content="width=device-width,initial-scale=1" />
+  <meta charset="utf-8" />
+  <title>Cappy — Rive Demo</title>
+  <style>
+    html,body { height:100%; margin:0; background:#10d6b0; display:flex; align-items:center; justify-content:center; }
+    #canvas-wrap { width: 700px; max-width:90vw; aspect-ratio: 1/1; }
+    canvas { width:100%; height:100%; display:block; }
+    .hint { position:fixed; bottom:18px; left:50%; transform:translateX(-50%); font-family:system-ui,Arial; color:#022; background:rgba(255,255,255,0.9); padding:8px 12px; border-radius:8px; box-shadow:0 6px 20px rgba(0,0,0,0.12); }
+  </style>
+</head>
+<body>
+  <div id="canvas-wrap">
+    <canvas id="riveCanvas"></canvas>
+  </div>
+  <div class="hint">Click the canvas to make Cappy wave</div>
+
+  <!-- Rive runtime (unpkg CDN) -->
+  <script src="https://unpkg.com/rive-js@latest/dist/rive.min.js"></script>
+  <script>
+    (function () {
+      const canvas = document.getElementById('riveCanvas');
+
+      // === EDIT THESE to match your Rive file exactly ===
+      const riveFile = 'happycappyday_(1).riv';      // exact filename in repo
+      const stateMachineName = 'cappystate';        // exact state machine name
+      const triggerName = 'click';                  // exact trigger input name
+      // ==================================================
+
+      const riveInstance = new rive.Rive({
+        src: riveFile,
+        canvas: canvas,
+        autoplay: true,
+        stateMachines: stateMachineName,
+        onLoad: () => {
+          try {
+            const inputs = riveInstance.stateMachineInputs(stateMachineName) || [];
+            console.log('Rive inputs:', inputs.map(i => i.name));
+
+            const triggerInput = inputs.find(i => i.name === triggerName);
+            if (!triggerInput) {
+              console.warn('Trigger not found. Inputs list:', inputs.map(i => i.name));
+              return;
+            }
+
+            canvas.addEventListener('pointerdown', () => {
+              if (typeof triggerInput.fire === 'function') {
+                triggerInput.fire(); // ideal for trigger inputs
+              } else if ('value' in triggerInput) {
+                // fallback (boolean/number style inputs)
+                triggerInput.value = true;
+                setTimeout(() => triggerInput.value = false, 80);
+              }
+            });
+
+            console.log('Rive loaded. Trigger hooked:', triggerName);
+          } catch (err) {
+            console.error('Error hooking inputs:', err);
+          }
+        }
+      });
+    })();
+  </script>
+</body>
+</html>
+
+
+
